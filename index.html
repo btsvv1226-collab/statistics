@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台中市召會 週報表統計</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f4f6f9;color:#1a1a1a;padding:16px}
+h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.wrap{max-width:900px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.header-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.title-block h3{font-size:16px;font-weight:500;color:#1a1a1a;margin:0}
+.title-block p{font-size:12px;color:#666;margin:2px 0 0}
+.week-input{display:flex;align-items:center;gap:6px;font-size:12px;color:#666}
+.week-input input{padding:4px 8px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#1a1a1a;font-size:12px;width:130px;font-family:inherit}
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.s-card{background:#f0f4f8;border-radius:8px;padding:10px 12px}
+.s-card .label{font-size:11px;color:#666;margin-bottom:4px}
+.s-card .val{font-size:20px;font-weight:500;color:#1a1a1a}
+.s-card .delta{font-size:11px;margin-top:2px}
+.pos{color:#2e7d32}.neg{color:#c62828}.neu{color:#666}
+.tbl-wrap{overflow-x:auto;border:1px solid #dde3ea;border-radius:8px}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px}
+thead tr:first-child th{background:#1F4E79;color:#fff;font-weight:500;font-size:12px;padding:7px 6px;text-align:center;white-space:nowrap}
+thead tr:last-child th{background:#2E75B6;color:#fff;font-weight:500;font-size:11px;padding:5px 6px;text-align:center;line-height:1.4}
+tbody tr{border-bottom:1px solid #e8edf2}
+tbody tr:last-child{border-bottom:none}
+tbody tr.group-start td{border-top:2px solid #1F4E79}
+tbody td{padding:5px 6px;text-align:center;font-size:12px;color:#1a1a1a;vertical-align:middle}
+.td-num{font-variant-numeric:tabular-nums}
+.td-dist{font-weight:500;background:#f4f6f9;color:#555;font-size:11px}
+.td-base-life-each{background:#EBF3FB;color:#1F4E79}
+.td-base-row{background:#D6E4F0;color:#1F4E79;font-weight:500}
+.td-sunday-base{background:#FFE8CC;color:#7B3F00;font-weight:500}
+.td-week-num{background:#FFF9E6;color:#7B3F00}
+.td-week-grp{background:#FFF2CC;color:#7B3F00;font-weight:500}
+.td-ratio{font-weight:500}
+.td-grp-ratio{font-weight:700;font-size:13px}
+.total-row td{background:#1F4E79!important;color:#fff!important;font-weight:500}
+.subtotal-row td{border-top:1px solid #2E75B6;background:#f8fafc}
+@media(max-width:600px){
+  .summary-cards{grid-template-columns:repeat(2,1fr)}
+  .wrap{padding:12px}
+  body{padding:8px}
+}
+@media print{
+  body{background:#fff;padding:0}
+  .wrap{box-shadow:none;padding:8px}
+  .week-input{display:none}
+}
+</style>
+</head>
+<body>
+<h2 class="sr-only">台中市召會週報表統計</h2>
+<div class="wrap">
+  <div class="header-bar">
+    <div class="title-block">
+      <h3>台中市召會 · 週報表統計</h3>
+      <p id="week-label">2026年 5月11日(一) — 5月17日(日)</p>
+    </div>
+    <div class="week-input">
+      <label>報表週次：</label>
+      <input type="text" id="week-title" value="5/11-5/17" oninput="updateWeekLabel(this.value)">
+    </div>
+  </div>
+  <div class="summary-cards" id="summary-cards"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:58px">大區</th>
+          <th colspan="3" style="background:#154C79">2026 基數</th>
+          <th colspan="4" id="th-week">5/11-5/17</th>
+          <th rowspan="2" style="width:52px">繁增<br>比例</th>
+        </tr>
+        <tr>
+          <th style="width:50px">召會生活<br>兒童數</th>
+          <th style="width:44px">兒童排<br>基數</th>
+          <th style="width:44px">主日<br>基數</th>
+          <th style="width:40px">兒童排</th>
+          <th style="width:40px">家聚會<br>受訪</th>
+          <th style="width:40px">主日</th>
+          <th style="width:52px">召會生活<br>兒童數</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const RAW = [
+  {g:"A",dist:"一",    base_life:15,base_row:35,base_sunday:18,row:10,home:8, sunday:15,life:20},
+  {g:"A",dist:"四",    base_life:6, base_row:35,base_sunday:5, row:8, home:3, sunday:3, life:9},
+  {g:"A",dist:"三十三",base_life:6, base_row:35,base_sunday:4, row:7, home:3, sunday:4, life:9},
+  {g:"A",dist:"二十七",base_life:11,base_row:35,base_sunday:6, row:5, home:7, sunday:8, life:10},
+  {g:"B",dist:"二",    base_life:15,base_row:36,base_sunday:5, row:11,home:3, sunday:5, life:17},
+  {g:"B",dist:"三",    base_life:9, base_row:36,base_sunday:6, row:6, home:5, sunday:4, life:10},
+  {g:"B",dist:"十一",  base_life:16,base_row:36,base_sunday:9, row:17,home:4, sunday:8, life:20},
+  {g:"B",dist:"三十九",base_life:5, base_row:36,base_sunday:2, row:9, home:3, sunday:4, life:12},
+  {g:"C",dist:"十七",  base_life:5, base_row:34,base_sunday:2, row:0, home:2, sunday:4, life:4},
+  {g:"C",dist:"二十三",base_life:23,base_row:34,base_sunday:17,row:17,home:10,sunday:23,life:25},
+  {g:"C",dist:"三十四",base_life:5, base_row:34,base_sunday:7, row:3, home:2, sunday:3, life:4},
+  {g:"C",dist:"二十四",base_life:21,base_row:34,base_sunday:16,row:14,home:16,sunday:15,life:22},
+  {g:"C",dist:"四十",  base_life:6, base_row:34,base_sunday:3, row:5, home:2, sunday:3, life:6},
+  {g:"D",dist:"七",    base_life:19,base_row:29,base_sunday:10,row:9, home:7, sunday:10,life:18},
+  {g:"D",dist:"十五",  base_life:8, base_row:29,base_sunday:6, row:5, home:6, sunday:5, life:8},
+  {g:"D",dist:"二十八",base_life:13,base_row:29,base_sunday:10,row:5, home:6, sunday:11,life:12},
+  {g:"D",dist:"二十九",base_life:8, base_row:29,base_sunday:7, row:1, home:4, sunday:5, life:5},
+  {g:"E",dist:"十八",  base_life:12,base_row:21,base_sunday:10,row:7, home:1, sunday:12,life:16},
+  {g:"E",dist:"三十二",base_life:5, base_row:21,base_sunday:5, row:0, home:0, sunday:3, life:3},
+  {g:"E",dist:"十九",  base_life:1, base_row:21,base_sunday:3, row:0, home:0, sunday:1, life:1},
+  {g:"E",dist:"三十八",base_life:1, base_row:21,base_sunday:0, row:2, home:0, sunday:2, life:4},
+  {g:"E",dist:"三十一",base_life:10,base_row:21,base_sunday:3, row:1, home:3, sunday:0, life:4},
+  {g:"F",dist:"九",    base_life:9, base_row:23,base_sunday:8, row:3, home:3, sunday:5, life:6},
+  {g:"F",dist:"二十六",base_life:9, base_row:23,base_sunday:9, row:6, home:1, sunday:4, life:7},
+  {g:"F",dist:"三十七",base_life:15,base_row:23,base_sunday:16,row:1, home:5, sunday:10,life:10},
+  {g:"F",dist:"十",    base_life:4, base_row:23,base_sunday:4, row:4, home:4, sunday:3, life:4},
+  {g:"G",dist:"二十",  base_life:23,base_row:44,base_sunday:21,row:13,home:14,sunday:18,life:21},
+  {g:"G",dist:"二十一",base_life:22,base_row:44,base_sunday:13,row:11,home:14,sunday:13,life:16},
+  {g:"G",dist:"三十六",base_life:18,base_row:44,base_sunday:10,row:6, home:10,sunday:10,life:16},
+  {g:"G",dist:"二十二",base_life:8, base_row:44,base_sunday:1, row:4, home:3, sunday:7, life:9},
+  {g:"H",dist:"五",    base_life:16,base_row:26,base_sunday:12,row:14,home:9, sunday:13,life:17},
+  {g:"H",dist:"十三",  base_life:9, base_row:26,base_sunday:9, row:2, home:9, sunday:7, life:9},
+  {g:"H",dist:"三十五",base_life:8, base_row:26,base_sunday:9, row:5, home:0, sunday:11,life:11},
+  {g:"I",dist:"八",    base_life:4, base_row:6, base_sunday:6, row:0, home:0, sunday:1, life:1},
+  {g:"I",dist:"十二",  base_life:5, base_row:6, base_sunday:3, row:0, home:2, sunday:3, life:4},
+  {g:"I",dist:"十六",  base_life:5, base_row:6, base_sunday:4, row:2, home:5, sunday:1, life:5},
+  {g:"I",dist:"二十五",base_life:3, base_row:6, base_sunday:3, row:0, home:3, sunday:2, life:5},
+  {g:"I",dist:"四十一",base_life:13,base_row:6, base_sunday:9, row:2, home:6, sunday:5, life:8},
+  {g:"J",dist:"六",    base_life:19,base_row:30,base_sunday:15,row:2, home:8, sunday:13,life:17},
+  {g:"J",dist:"十四",  base_life:24,base_row:30,base_sunday:17,row:7, home:18,sunday:11,life:24},
+  {g:"J",dist:"三十",  base_life:15,base_row:30,base_sunday:7, row:11,home:12,sunday:5, life:14},
+];
+function ratio(c,b){if(!b)return null;return Math.round((c-b)/b*100);}
+function ratioCls(r){if(r===null)return"neu";return r>0?"pos":r<0?"neg":"neu";}
+function ratioStr(r){if(r===null)return"-";return(r>0?"+":"")+r+"%";}
+function updateWeekLabel(v){
+  document.getElementById("week-label").textContent="2026年 "+v+" 週統計";
+  document.getElementById("th-week").textContent=v;
+}
+function buildSummary(){
+  const tB=RAW.reduce((s,d)=>s+d.base_life,0);
+  const tL=RAW.reduce((s,d)=>s+d.life,0);
+  const tR=RAW.reduce((s,d)=>s+d.row,0);
+  const tH=RAW.reduce((s,d)=>s+d.home,0);
+  const tS=RAW.reduce((s,d)=>s+d.sunday,0);
+  const r=ratio(tL,tB);
+  const cards=[
+    {label:"召會生活兒童數 (本週)",val:tL,delta:ratioStr(r)+" vs 基數 "+tB,cls:ratioCls(r)},
+    {label:"兒童排 (本週)",val:tR,delta:"",cls:"neu"},
+    {label:"家聚會受訪 (本週)",val:tH,delta:"",cls:"neu"},
+    {label:"主日 (本週)",val:tS,delta:"",cls:"neu"},
+  ];
+  document.getElementById("summary-cards").innerHTML=cards.map(c=>`<div class="s-card"><div class="label">${c.label}</div><div class="val">${c.val}</div><div class="delta ${c.cls}">${c.delta}</div></div>`).join("");
+}
+function buildTable(){
+  const gKeys=[...new Set(RAW.map(d=>d.g))];
+  let html="",rowIdx=0;
+  gKeys.forEach(g=>{
+    const rows=RAW.filter(d=>d.g===g);
+    const gBL=rows.reduce((s,d)=>s+d.base_life,0);
+    const gL=rows.reduce((s,d)=>s+d.life,0);
+    const gR=rows.reduce((s,d)=>s+d.row,0);
+    const gH=rows.reduce((s,d)=>s+d.home,0);
+    const gS=rows.reduce((s,d)=>s+d.sunday,0);
+    const gRatio=ratio(gL,gBL);
+    const baseRow=rows[0].base_row;
+    rows.forEach((d,di)=>{
+      const r=ratio(d.life,d.base_life);
+      const stripe=rowIdx%2===1?" stripe":"";
+      const isFirst=di===0;
+      html+=`<tr class="${isFirst?"group-start":""}${stripe}">
+        <td class="td-dist">${d.dist}大區</td>
+        <td class="td-base-life-each td-num">${d.base_life}</td>
+        ${isFirst?`<td class="td-base-row td-num" rowspan="${rows.length}">${baseRow}</td>`:""}
+        <td class="td-sunday-base td-num">${d.base_sunday}</td>
+        <td class="td-week-num td-num">${d.row}</td>
+        <td class="td-week-num td-num">${d.home}</td>
+        <td class="td-week-num td-num">${d.sunday}</td>
+        <td class="td-week-num td-num">${d.life}</td>
+        <td class="td-ratio ${ratioCls(r)} td-num">${ratioStr(r)}</td>
+      </tr>`;
+      rowIdx++;
+    });
+    const gBS=rows.reduce((s,d)=>s+d.base_sunday,0);
+    html+=`<tr class="subtotal-row">
+      <td style="text-align:right;font-size:11px;color:#999;padding:3px 8px" colspan="2">小計 ${gBL}</td>
+      <td class="td-base-row td-num">${baseRow}</td>
+      <td class="td-sunday-base td-num">${gBS}</td>
+      <td class="td-week-grp td-num">${gR}</td>
+      <td class="td-week-grp td-num">${gH}</td>
+      <td class="td-week-grp td-num">${gS}</td>
+      <td class="td-week-grp td-num">${gL}</td>
+      <td class="td-grp-ratio ${ratioCls(gRatio)} td-num">${ratioStr(gRatio)}</td>
+    </tr>`;
+  });
+  const tB=RAW.reduce((s,d)=>s+d.base_life,0);
+  const tL=RAW.reduce((s,d)=>s+d.life,0);
+  const tR=RAW.reduce((s,d)=>s+d.row,0);
+  const tH=RAW.reduce((s,d)=>s+d.home,0);
+  const tS=RAW.reduce((s,d)=>s+d.sunday,0);
+  const tBR=gKeys.reduce((s,g)=>s+RAW.find(d=>d.g===g).base_row,0);
+  const tBS=RAW.reduce((s,d)=>s+d.base_sunday,0);
+  const tRatio=ratio(tL,tB);
+  html+=`<tr class="total-row group-start">
+    <td>總計</td><td class="td-num">${tB}</td><td class="td-num">${tBR}</td>
+    <td class="td-num">${tBS}</td><td class="td-num">${tR}</td><td class="td-num">${tH}</td>
+    <td class="td-num">${tS}</td><td class="td-num">${tL}</td><td class="td-num">${ratioStr(tRatio)}</td>
+  </tr>`;
+  document.getElementById("tbl-body").innerHTML=html;
+}
+buildSummary();
+buildTable();
+</script>
+</body>
+</html>
