@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台中市召會 週報表統計</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f4f6f9;color:#1a1a1a;padding:16px}
+.wrap{max-width:960px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.header-bar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.title-block h3{font-size:17px;font-weight:600;color:#1a1a1a}
+.title-block p{font-size:12px;color:#666;margin-top:2px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-import{background:#e8f0fe;color:#1a56db}
+.btn-pdf{background:#fce8e6;color:#c0392b}
+.btn-png{background:#e6f4ea;color:#1e7e34}
+.btn-import input{display:none}
+.week-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.week-row label{font-size:12px;color:#666}
+.week-row input{padding:5px 10px;border:1px solid #ccc;border-radius:6px;font-size:12px;font-family:inherit;width:140px}
+.import-hint{font-size:11px;color:#999;margin-left:4px}
+.summary-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.s-card{background:#f0f4f8;border-radius:8px;padding:10px 12px}
+.s-card .label{font-size:11px;color:#666;margin-bottom:4px}
+.s-card .val{font-size:20px;font-weight:600;color:#1a1a1a}
+.s-card .delta{font-size:11px;margin-top:2px}
+.pos{color:#2e7d32}.neg{color:#c62828}.neu{color:#666}
+.tbl-wrap{overflow-x:auto;border:1px solid #dde3ea;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr:first-child th{background:#1F4E79;color:#fff;font-weight:500;font-size:12px;padding:7px 6px;text-align:center;white-space:nowrap}
+thead tr:last-child th{background:#2E75B6;color:#fff;font-weight:500;font-size:11px;padding:5px 6px;text-align:center;line-height:1.4}
+tbody tr{border-bottom:1px solid #e8edf2}
+tbody tr:last-child{border-bottom:none}
+tbody tr.group-start td{border-top:2px solid #1F4E79}
+tbody td{padding:5px 6px;text-align:center;font-size:12px;vertical-align:middle}
+.td-dist{font-weight:500;background:#f4f6f9;color:#555;font-size:11px}
+.td-base-life{background:#EBF3FB;color:#1F4E79}
+.td-base-row{background:#D6E4F0;color:#1F4E79;font-weight:500}
+.td-sunday-base{background:#FFE8CC;color:#7B3F00;font-weight:500}
+.td-week{background:#FFF9E6;color:#7B3F00}
+.td-week-grp{background:#FFF2CC;color:#7B3F00;font-weight:500}
+.td-ratio{font-weight:500}
+.td-grp-ratio{font-weight:700;font-size:13px}
+.total-row td{background:#1F4E79!important;color:#fff!important;font-weight:500}
+.subtotal-row td{border-top:1px solid #2E75B6;background:#f8fafc}
+.stripe td{background-color:rgba(0,0,0,0.015)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+@media(max-width:600px){
+  .summary-cards{grid-template-columns:repeat(2,1fr)}
+  .wrap{padding:12px}
+  body{padding:8px}
+}
+@media print{
+  body{background:#fff;padding:0}
+  .wrap{box-shadow:none;padding:8px}
+  .toolbar,.week-row,.no-print{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="report-wrap">
+  <div class="header-bar no-print">
+    <div class="title-block">
+      <h3>台中市召會 · 週報表統計</h3>
+      <p id="week-label">2026年 5月11日(一) — 5月17日(日)</p>
+    </div>
+    <div class="toolbar">
+      <label class="btn btn-import">
+        📂 匯入 Excel
+        <input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(this)">
+      </label>
+      <button class="btn btn-pdf" onclick="exportPDF()">📄 匯出 PDF</button>
+      <button class="btn btn-png" onclick="exportPNG()">🖼 匯出圖片</button>
+    </div>
+  </div>
+  <div class="week-row no-print">
+    <label>報表週次：</label>
+    <input type="text" id="week-title" value="5/11-5/17" oninput="updateWeekLabel(this.value)">
+    <span class="import-hint" id="import-status"></span>
+  </div>
+  <div id="report-content">
+    <div style="text-align:center;padding:6px 0 10px;font-size:15px;font-weight:600;color:#1F4E79;display:none" id="print-title">台中市召會 · 週報表統計</div>
+    <div class="summary-cards" id="summary-cards"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2" style="width:60px">大區</th>
+            <th colspan="3" style="background:#154C79">2026 基數</th>
+            <th colspan="4" id="th-week">5/11-5/17</th>
+            <th rowspan="2" style="width:54px">繁增<br>比例</th>
+          </tr>
+          <tr>
+            <th style="width:52px">召會生活<br>兒童數</th>
+            <th style="width:46px">兒童排<br>基數</th>
+            <th style="width:46px">主日<br>基數</th>
+            <th style="width:42px">兒童排</th>
+            <th style="width:42px">家聚會<br>受訪</th>
+            <th style="width:42px">主日</th>
+            <th style="width:54px">召會生活<br>兒童數</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 基數資料（固定） ──────────────────────────────
+const BASE = [
+  {g:"A",dist:"一",    bl:15,br:35,bs:18},
+  {g:"A",dist:"四",    bl:6, br:35,bs:5},
+  {g:"A",dist:"三十三",bl:6, br:35,bs:4},
+  {g:"A",dist:"二十七",bl:11,br:35,bs:6},
+  {g:"B",dist:"二",    bl:15,br:36,bs:5},
+  {g:"B",dist:"三",    bl:9, br:36,bs:6},
+  {g:"B",dist:"十一",  bl:16,br:36,bs:9},
+  {g:"B",dist:"三十九",bl:5, br:36,bs:2},
+  {g:"C",dist:"十七",  bl:5, br:34,bs:2},
+  {g:"C",dist:"二十三",bl:23,br:34,bs:17},
+  {g:"C",dist:"三十四",bl:5, br:34,bs:7},
+  {g:"C",dist:"二十四",bl:21,br:34,bs:16},
+  {g:"C",dist:"四十",  bl:6, br:34,bs:3},
+  {g:"D",dist:"七",    bl:19,br:29,bs:10},
+  {g:"D",dist:"十五",  bl:8, br:29,bs:6},
+  {g:"D",dist:"二十八",bl:13,br:29,bs:10},
+  {g:"D",dist:"二十九",bl:8, br:29,bs:7},
+  {g:"E",dist:"十八",  bl:12,br:21,bs:10},
+  {g:"E",dist:"三十二",bl:5, br:21,bs:5},
+  {g:"E",dist:"十九",  bl:1, br:21,bs:3},
+  {g:"E",dist:"三十八",bl:1, br:21,bs:0},
+  {g:"E",dist:"三十一",bl:10,br:21,bs:3},
+  {g:"F",dist:"九",    bl:9, br:23,bs:8},
+  {g:"F",dist:"二十六",bl:9, br:23,bs:9},
+  {g:"F",dist:"三十七",bl:15,br:23,bs:16},
+  {g:"F",dist:"十",    bl:4, br:23,bs:4},
+  {g:"G",dist:"二十",  bl:23,br:44,bs:21},
+  {g:"G",dist:"二十一",bl:22,br:44,bs:13},
+  {g:"G",dist:"三十六",bl:18,br:44,bs:10},
+  {g:"G",dist:"二十二",bl:8, br:44,bs:1},
+  {g:"H",dist:"五",    bl:16,br:26,bs:12},
+  {g:"H",dist:"十三",  bl:9, br:26,bs:9},
+  {g:"H",dist:"三十五",bl:8, br:26,bs:9},
+  {g:"I",dist:"八",    bl:4, br:6, bs:6},
+  {g:"I",dist:"十二",  bl:5, br:6, bs:3},
+  {g:"I",dist:"十六",  bl:5, br:6, bs:4},
+  {g:"I",dist:"二十五",bl:3, br:6, bs:3},
+  {g:"I",dist:"四十一",bl:13,br:6, bs:9},
+  {g:"J",dist:"六",    bl:19,br:30,bs:15},
+  {g:"J",dist:"十四",  bl:24,br:30,bs:17},
+  {g:"J",dist:"三十",  bl:15,br:30,bs:7},
+];
+
+// ── 本週數據（預設為範例值，匯入後覆蓋） ──────────
+let WEEK = [
+  {dist:"一",    row:10,home:8, sunday:15,life:20},
+  {dist:"四",    row:8, home:3, sunday:3, life:9},
+  {dist:"三十三",row:7, home:3, sunday:4, life:9},
+  {dist:"二十七",row:5, home:7, sunday:8, life:10},
+  {dist:"二",    row:11,home:3, sunday:5, life:17},
+  {dist:"三",    row:6, home:5, sunday:4, life:10},
+  {dist:"十一",  row:17,home:4, sunday:8, life:20},
+  {dist:"三十九",row:9, home:3, sunday:4, life:12},
+  {dist:"十七",  row:0, home:2, sunday:4, life:4},
+  {dist:"二十三",row:17,home:10,sunday:23,life:25},
+  {dist:"三十四",row:3, home:2, sunday:3, life:4},
+  {dist:"二十四",row:14,home:16,sunday:15,life:22},
+  {dist:"四十",  row:5, home:2, sunday:3, life:6},
+  {dist:"七",    row:9, home:7, sunday:10,life:18},
+  {dist:"十五",  row:5, home:6, sunday:5, life:8},
+  {dist:"二十八",row:5, home:6, sunday:11,life:12},
+  {dist:"二十九",row:1, home:4, sunday:5, life:5},
+  {dist:"十八",  row:7, home:1, sunday:12,life:16},
+  {dist:"三十二",row:0, home:0, sunday:3, life:3},
+  {dist:"十九",  row:0, home:0, sunday:1, life:1},
+  {dist:"三十八",row:2, home:0, sunday:2, life:4},
+  {dist:"三十一",row:1, home:3, sunday:0, life:4},
+  {dist:"九",    row:3, home:3, sunday:5, life:6},
+  {dist:"二十六",row:6, home:1, sunday:4, life:7},
+  {dist:"三十七",row:1, home:5, sunday:10,life:10},
+  {dist:"十",    row:4, home:4, sunday:3, life:4},
+  {dist:"二十",  row:13,home:14,sunday:18,life:21},
+  {dist:"二十一",row:11,home:14,sunday:13,life:16},
+  {dist:"三十六",row:6, home:10,sunday:10,life:16},
+  {dist:"二十二",row:4, home:3, sunday:7, life:9},
+  {dist:"五",    row:14,home:9, sunday:13,life:17},
+  {dist:"十三",  row:2, home:9, sunday:7, life:9},
+  {dist:"三十五",row:5, home:0, sunday:11,life:11},
+  {dist:"八",    row:0, home:0, sunday:1, life:1},
+  {dist:"十二",  row:0, home:2, sunday:3, life:4},
+  {dist:"十六",  row:2, home:5, sunday:1, life:5},
+  {dist:"二十五",row:0, home:3, sunday:2, life:5},
+  {dist:"四十一",row:2, home:6, sunday:5, life:8},
+  {dist:"六",    row:2, home:8, sunday:13,life:17},
+  {dist:"十四",  row:7, home:18,sunday:11,life:24},
+  {dist:"三十",  row:11,home:12,sunday:5, life:14},
+];
+
+function getRAW(){
+  return BASE.map((b,i)=>{
+    const w = WEEK.find(x=>x.dist===b.dist) || {row:0,home:0,sunday:0,life:0};
+    return {...b, row:w.row, home:w.home, sunday:w.sunday, life:w.life};
+  });
+}
+
+function ratio(c,b){if(!b)return null;return Math.round((c-b)/b*100);}
+function ratioCls(r){if(r===null)return"neu";return r>0?"pos":r<0?"neg":"neu";}
+function ratioStr(r){if(r===null)return"-";return(r>0?"+":"")+r+"%";}
+
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+function updateWeekLabel(v){
+  document.getElementById("week-label").textContent="2026年 "+v+" 週統計";
+  document.getElementById("th-week").textContent=v;
+  document.getElementById("print-title").textContent="台中市召會 · 週報表統計（"+v+"）";
+}
+
+function buildSummary(){
+  const RAW=getRAW();
+  const tB=RAW.reduce((s,d)=>s+d.bl,0);
+  const tL=RAW.reduce((s,d)=>s+d.life,0);
+  const tR=RAW.reduce((s,d)=>s+d.row,0);
+  const tH=RAW.reduce((s,d)=>s+d.home,0);
+  const tS=RAW.reduce((s,d)=>s+d.sunday,0);
+  const r=ratio(tL,tB);
+  const cards=[
+    {label:"召會生活兒童數",val:tL,delta:ratioStr(r)+" vs 基數 "+tB,cls:ratioCls(r)},
+    {label:"兒童排",val:tR,delta:"",cls:"neu"},
+    {label:"家聚會受訪",val:tH,delta:"",cls:"neu"},
+    {label:"主日",val:tS,delta:"",cls:"neu"},
+  ];
+  document.getElementById("summary-cards").innerHTML=cards.map(c=>`
+    <div class="s-card">
+      <div class="label">${c.label}</div>
+      <div class="val">${c.val}</div>
+      <div class="delta ${c.cls}">${c.delta}</div>
+    </div>`).join("");
+}
+
+function buildTable(){
+  const RAW=getRAW();
+  const gKeys=[...new Set(RAW.map(d=>d.g))];
+  let html="",idx=0;
+  gKeys.forEach(g=>{
+    const rows=RAW.filter(d=>d.g===g);
+    const gBL=rows.reduce((s,d)=>s+d.bl,0);
+    const gL=rows.reduce((s,d)=>s+d.life,0);
+    const gR=rows.reduce((s,d)=>s+d.row,0);
+    const gH=rows.reduce((s,d)=>s+d.home,0);
+    const gS=rows.reduce((s,d)=>s+d.sunday,0);
+    const gRatio=ratio(gL,gBL);
+    const br=rows[0].br;
+    rows.forEach((d,di)=>{
+      const r=ratio(d.life,d.bl);
+      const stripe=idx%2===1?" stripe":"";
+      html+=`<tr class="${di===0?"group-start":""}${stripe}">
+        <td class="td-dist">${d.dist}大區</td>
+        <td class="td-base-life">${d.bl}</td>
+        ${di===0?`<td class="td-base-row" rowspan="${rows.length}">${br}</td>`:""}
+        <td class="td-sunday-base">${d.bs}</td>
+        <td class="td-week">${d.row}</td>
+        <td class="td-week">${d.home}</td>
+        <td class="td-week">${d.sunday}</td>
+        <td class="td-week">${d.life}</td>
+        <td class="td-ratio ${ratioCls(r)}">${ratioStr(r)}</td>
+      </tr>`;
+      idx++;
+    });
+    const gBS=rows.reduce((s,d)=>s+d.bs,0);
+    html+=`<tr class="subtotal-row">
+      <td style="text-align:right;font-size:11px;color:#999;padding:3px 8px" colspan="2">小計 ${gBL}</td>
+      <td class="td-base-row">${br}</td>
+      <td class="td-sunday-base">${gBS}</td>
+      <td class="td-week-grp">${gR}</td>
+      <td class="td-week-grp">${gH}</td>
+      <td class="td-week-grp">${gS}</td>
+      <td class="td-week-grp">${gL}</td>
+      <td class="td-grp-ratio ${ratioCls(gRatio)}">${ratioStr(gRatio)}</td>
+    </tr>`;
+  });
+  const RAW2=getRAW();
+  const tB=RAW2.reduce((s,d)=>s+d.bl,0),tL=RAW2.reduce((s,d)=>s+d.life,0);
+  const tR=RAW2.reduce((s,d)=>s+d.row,0),tH=RAW2.reduce((s,d)=>s+d.home,0);
+  const tS=RAW2.reduce((s,d)=>s+d.sunday,0);
+  const tBR=gKeys.reduce((s,g)=>s+RAW2.find(d=>d.g===g).br,0);
+  const tBS=RAW2.reduce((s,d)=>s+d.bs,0);
+  html+=`<tr class="total-row group-start">
+    <td>總計</td><td>${tB}</td><td>${tBR}</td><td>${tBS}</td>
+    <td>${tR}</td><td>${tH}</td><td>${tS}</td><td>${tL}</td>
+    <td>${ratioStr(ratio(tL,tB))}</td>
+  </tr>`;
+  document.getElementById("tbl-body").innerHTML=html;
+}
+
+function render(){buildSummary();buildTable();}
+
+// ── 匯入 Excel ──────────────────────────────────
+function importExcel(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:"binary"});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+      // 尋找大區欄和數據欄
+      // 預期格式：大區編號 | 兒童排 | 家聚會受訪 | 主日 | 召會生活兒童數
+      let matched=0;
+      data.forEach(row=>{
+        if(!row||row.length<2)return;
+        // 找到大區名稱（數字或中文數字）
+        const distRaw=String(row[0]).trim();
+        const base=BASE.find(b=>b.dist===distRaw||b.dist===distRaw+"大區");
+        if(!base)return;
+        const w=WEEK.find(x=>x.dist===base.dist);
+        if(!w)return;
+        // 嘗試讀欄位（依序：兒童排, 家聚會, 主日, 召會生活）
+        const nums=row.slice(1).map(x=>parseInt(x)||0);
+        if(nums.length>=4){w.row=nums[0];w.home=nums[1];w.sunday=nums[2];w.life=nums[3];matched++;}
+        else if(nums.length===3){w.row=nums[0];w.home=nums[1];w.life=nums[2];matched++;}
+      });
+      if(matched>0){
+        render();
+        document.getElementById("import-status").textContent="✅ 已匯入 "+matched+" 筆資料";
+        showToast("成功匯入 "+matched+" 個大區的數據！");
+      } else {
+        document.getElementById("import-status").textContent="⚠️ 找不到對應大區";
+        showToast("找不到對應大區，請確認欄位格式");
+      }
+    }catch(err){
+      showToast("匯入失敗："+err.message);
+    }
+    input.value="";
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ── 匯出 PDF ──────────────────────────────────
+async function exportPDF(){
+  showToast("準備中…");
+  document.getElementById("print-title").style.display="block";
+  const el=document.getElementById("report-content");
+  const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:"#ffffff"});
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const pw=pdf.internal.pageSize.getWidth()-16;
+  const ph=pdf.internal.pageSize.getHeight()-20;
+  const iw=canvas.width, ih=canvas.height;
+  const scale=pw/(iw/2*0.2645);
+  const h=ih/2*0.2645*scale;
+  let y=10, srcY=0;
+  const pageH=ph/(scale);
+  const totalPages=Math.ceil(ih/2/pageH);
+  for(let p=0;p<totalPages;p++){
+    if(p>0)pdf.addPage();
+    const tmpCanvas=document.createElement("canvas");
+    tmpCanvas.width=iw;
+    const sliceH=Math.min(pageH*2, ih-srcY);
+    tmpCanvas.height=sliceH;
+    const ctx=tmpCanvas.getContext("2d");
+    ctx.drawImage(canvas,0,srcY,iw,sliceH,0,0,iw,sliceH);
+    const img=tmpCanvas.toDataURL("image/jpeg",0.92);
+    pdf.addImage(img,"JPEG",8,y,pw,sliceH/2*0.2645*scale);
+    srcY+=pageH*2;
+  }
+  const week=document.getElementById("week-title").value||"週報表";
+  pdf.save("台中召會統計_"+week+".pdf");
+  document.getElementById("print-title").style.display="none";
+  showToast("PDF 已下載！");
+}
+
+// ── 匯出 PNG ──────────────────────────────────
+async function exportPNG(){
+  showToast("準備中…");
+  document.getElementById("print-title").style.display="block";
+  const el=document.getElementById("report-content");
+  const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:"#ffffff"});
+  const link=document.createElement("a");
+  const week=document.getElementById("week-title").value||"週報表";
+  link.download="台中召會統計_"+week+".png";
+  link.href=canvas.toDataURL("image/png");
+  link.click();
+  document.getElementById("print-title").style.display="none";
+  showToast("圖片已下載！");
+}
+
+render();
+</script>
+</body>
+</html>
