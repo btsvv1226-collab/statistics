@@ -514,7 +514,7 @@ async function exportPNG(){
   const canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",useCORS:true});
   const link=document.createElement("a");
   const titleVal=document.getElementById("report-title").value||"報表";
-  link.download="台中召會統計_"+titleVal+".png";
+  link.download="兒童召會生活數逐週統計_"+titleVal+".png";
   link.href=canvas.toDataURL("image/png");
   link.click();
   showToast("✅ 圖片已下載！");
