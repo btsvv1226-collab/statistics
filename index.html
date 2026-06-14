@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>台中市召會 統計報表</title>
+<title>台中市召會.兒童召會生活數逐週統計</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -102,7 +102,7 @@ tbody td[title],thead th[title]{cursor:help}
 <div class="wrap">
   <div class="page-header">
     <div>
-      <h2>台中市召會 · 統計報表</h2>
+      <h2>台中市召會.兒童召會生活數逐週統計</h2>
       <p id="page-subtitle">基數資料已內建，請匯入 Excel 以載入數據</p>
     </div>
   </div>
@@ -116,6 +116,7 @@ tbody td[title],thead th[title]{cursor:help}
     </label>
     <button class="btn btn-excel" onclick="exportWeekExcel()">📊 匯出 Excel</button>
     <button class="btn btn-png" onclick="exportPNG('week-content','week-title')">🖼 匯出圖片</button>
+    <button class="btn btn-danger" onclick="clearWeekData()">🗑 清除</button>
     <span class="hint" id="week-status"></span>
   </div>
   <div class="ctrl-row">
@@ -249,7 +250,8 @@ function parseFile(file,cb){
         // 召會生活: base_col+13(學齡前),base_col+14(國小)
         const b=base_col;
         map[base.dist]={
-          sunday: n(row[b+4])  + n(row[b+5]),  // 兒童主日
+          // 兒童主日 = 兒童主日(學齡前+國小) + 主日的國小
+          sunday: n(row[b+4])  + n(row[b+5]) + n(row[b+2]),
           home:   n(row[b+7])  + n(row[b+8]),  // 家聚會受訪
           row:    n(row[b+10]) + n(row[b+11]), // 兒童排
           life:   n(row[b+13]) + n(row[b+14]), // 召會生活
@@ -292,6 +294,7 @@ function buildTableHTML(data,weekLabel){
         <td class="td-week-row" title="兒童排">${v(w?.row)}</td>
         <td class="td-week-home" title="家聚會受訪（基數 ${d.bh}）">${v(w?.home)}</td>
         <td class="td-week-sun" title="兒童主日（基數 ${d.bs}）">${v(w?.sunday)}</td>
+        <td class="td-week-life" title="召會生活兒童數（基數 ${d.bl}）">${v(w?.life)}</td>
         <td class="td-ratio ${ratioCls(r)}" title="${r!==null?`召會生活：本週 ${w?.life} ÷ 基數 ${d.bl} = ${ratioStr(r)}`:""}">${data?ratioStr(r):"-"}</td>
       </tr>`;
       idx++;
@@ -308,6 +311,7 @@ function buildTableHTML(data,weekLabel){
       <td class="td-week-grp-row" title="兒童排小計">${data?gR:"-"}</td>
       <td class="td-week-grp-home" title="家聚會受訪小計">${data?gH:"-"}</td>
       <td class="td-week-grp-sun" title="兒童主日小計">${data?gS:"-"}</td>
+      <td class="td-week-grp-life" title="召會生活兒童數小計">${data?gL:"-"}</td>
       <td class="td-grp-ratio ${ratioCls(gRatio)}" title="組繁增比例">${data?ratioStr(gRatio):"-"}</td>
     </tr>`;
   });
@@ -328,6 +332,7 @@ function buildTableHTML(data,weekLabel){
     <td title="兒童排">${tR}</td>
     <td title="家聚會受訪">${tH}</td>
     <td title="兒童主日">${tS}</td>
+    <td title="召會生活兒童數">${tL}</td>
     <td title="總體繁增比例">${data?ratioStr(ratio(tL,tB)):"-"}</td>
   </tr>`;
   return`<div class="tbl-wrap"><table>
@@ -335,7 +340,7 @@ function buildTableHTML(data,weekLabel){
       <tr>
         <th rowspan="2" style="width:66px">大區</th>
         <th colspan="4" style="background:#154C79">2026 基數</th>
-        <th colspan="3">${weekLabel||"本週"}</th>
+        <th colspan="4">${weekLabel||"本週"}</th>
         <th rowspan="2" style="width:58px">繁增<br>比例</th>
       </tr>
       <tr>
@@ -346,6 +351,7 @@ function buildTableHTML(data,weekLabel){
         <th style="width:50px">兒童排</th>
         <th style="width:50px">家聚會<br>受訪</th>
         <th style="width:50px">兒童主日</th>
+        <th style="width:54px">召會生活<br>兒童數</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -391,6 +397,15 @@ function renderWeek(){
     return;
   }
   area.innerHTML=buildSummaryHTML(WEEK_DATA)+buildTableHTML(WEEK_DATA,label);
+}
+
+function clearWeekData(){
+  if(!WEEK_DATA)return;
+  WEEK_DATA=null;
+  document.getElementById("week-title").value="";
+  document.getElementById("week-status").textContent="";
+  renderWeek();
+  showToast("已清除週報表資料");
 }
 
 function exportWeekExcel(){
@@ -600,7 +615,7 @@ async function exportPNG(contentId,titleId){
   showToast("準備中…");
   const canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",useCORS:true});
   const link=document.createElement("a");
-  link.download="台中召會統計_"+(document.getElementById(titleId).value||"報表")+".png";
+  link.download="台中市召會._"+(document.getElementById(titleId).value||"兒童召會生活數逐週統計")+".png";
   link.href=canvas.toDataURL("image/png");
   link.click();
   showToast("✅ 圖片已下載！");
