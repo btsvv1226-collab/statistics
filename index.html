@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>台中市召會.兒童召會生活數逐週統計</title>
+<title>台中市召會 統計報表</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -102,7 +102,7 @@ tbody td[title],thead th[title]{cursor:help}
 <div class="wrap">
   <div class="page-header">
     <div>
-      <h2>台中市召會.兒童召會生活數逐週統計</h2>
+      <h2>台中市召會 · 統計報表</h2>
       <p id="page-subtitle">基數資料已內建，請匯入 Excel 以載入數據</p>
     </div>
   </div>
@@ -242,19 +242,17 @@ function parseFile(file,cb){
         else return;
         const base=BASE.find(b=>b.dist===distName);
         if(!base)return;
-        // 相對大區名欄位的偏移（每組格式：學齡前,國小,小計，主日組後緊接兒童主日組...）
-        // 主日:     base_col+1(學齡前), base_col+2(國小)
-        // 兒童主日: base_col+4(學齡前), base_col+5(國小)
-        // 家聚會:   base_col+7(學齡前), base_col+8(國小)
-        // 兒童排:   base_col+10(學齡前),base_col+11(國小)
-        // 召會生活: base_col+13(學齡前),base_col+14(國小)
+        // 新格式（含國中欄）相對大區名欄位的偏移：
+        // 兒童主日 = 主日(學齡前+國小+國中) + 兒童主日(學齡前+國小)
+        // 家聚會受訪 = 家聚會(學齡前+國小+國中)
+        // 兒童排 = 兒童排(學齡前+國小+國中)
+        // 召會生活 = 召會生活(學齡前+國小+國中)
         const b=base_col;
         map[base.dist]={
-          // 兒童主日 = 兒童主日(學齡前+國小) + 主日的國小
-          sunday: n(row[b+4])  + n(row[b+5]) + n(row[b+2]),
-          home:   n(row[b+7])  + n(row[b+8]),  // 家聚會受訪
-          row:    n(row[b+10]) + n(row[b+11]), // 兒童排
-          life:   n(row[b+13]) + n(row[b+14]), // 召會生活
+          sunday: n(row[b+1]) + n(row[b+2]) + n(row[b+3]) + n(row[b+5]) + n(row[b+6]),
+          home:   n(row[b+8]) + n(row[b+9]) + n(row[b+10]),
+          row:    n(row[b+12])+ n(row[b+13])+ n(row[b+14]),
+          life:   n(row[b+16])+ n(row[b+17])+ n(row[b+18]),
         };
         matched++;
       });
@@ -615,7 +613,7 @@ async function exportPNG(contentId,titleId){
   showToast("準備中…");
   const canvas=await html2canvas(el,{scale:2,backgroundColor:"#ffffff",useCORS:true});
   const link=document.createElement("a");
-  link.download="台中市召會._"+(document.getElementById(titleId).value||"兒童召會生活數逐週統計")+".png";
+  link.download="台中召會統計_"+(document.getElementById(titleId).value||"報表")+".png";
   link.href=canvas.toDataURL("image/png");
   link.click();
   showToast("✅ 圖片已下載！");
