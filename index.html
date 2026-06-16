@@ -230,6 +230,24 @@ function parseFile(file,cb){
         const ws=wb.Sheets[wb.SheetNames[0]];
         rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
       }
+      // ── 自動偵測各分組起始位置 ──────────────────────
+      // row0: 會所,大區,主日,兒童主日,家聚會受訪,兒童排,召會生活,...
+      // row1: 學齡前,國小[,國中],小計 重複
+      // 找 row1 中每個「學齡前」的位置，依序對應到分組
+      const groupStartIdx = []; // 各組「學齡前」在 row1 的位置（相對 row1 col0）
+      const groupHasChung = [];
+      if(rows.length>1){
+        rows[1].forEach((v,i)=>{
+          if(String(v).trim()==="學齡前"){
+            groupStartIdx.push(i);
+            // 下一欄是國小，再下一欄若是國中則 hasChung=true
+            const next2 = String(rows[1][i+2]||"").trim();
+            groupHasChung.push(next2==="國中");
+          }
+        });
+      }
+      // ─────────────────────────────────────────────────
+
       const map={};let matched=0;
 
       rows.forEach(row=>{
@@ -242,17 +260,32 @@ function parseFile(file,cb){
         else return;
         const base=BASE.find(b=>b.dist===distName);
         if(!base)return;
-        // 新格式（含國中欄）相對大區名欄位的偏移：
-        // 兒童主日 = 主日(學齡前+國小+國中) + 兒童主日(學齡前+國小)
-        // 家聚會受訪 = 家聚會(學齡前+國小+國中)
-        // 兒童排 = 兒童排(學齡前+國小+國中)
-        // 召會生活 = 召會生活(學齡前+國小+國中)
+        // 自動偵測格式：依 row1 標題動態計算各欄位位置
+        // row0: 會所,大區,主日,兒童主日,家聚會受訪,兒童排,召會生活,...
+        // row1: 各組的 學齡前,國小[,國中],小計
+        // 策略：找 row0 各分組對應的 row1 欄位起始位置
         const b=base_col;
+
+        // 從 headerStruct 取各組起始位置（已在外部計算）
+        const sIdx = groupStartIdx; // [主日, 兒童主日, 家聚會, 兒童排, 召會生活] 相對 row1 col0
+        const hasChung = groupHasChung; // 各組是否有國中欄
+
+        // 各組學齡前+國小相對 row1 col0 的位置（data row 需加 base_col+1 的偏移）
+        function grpCols(gIdx){ // 回傳 [學齡前絕對col, 國小絕對col]
+          const start = sIdx[gIdx] + b + 1;
+          return [start, start+1];
+        }
+        const [s0p, s0e] = grpCols(0); // 主日
+        const [s1p, s1e] = grpCols(1); // 兒童主日
+        const [s2p, s2e] = grpCols(2); // 家聚會
+        const [s3p, s3e] = grpCols(3); // 兒童排
+        const [s4p, s4e] = grpCols(4); // 召會生活
+
         map[base.dist]={
-          sunday: n(row[b+1]) + n(row[b+2]) + n(row[b+3]) + n(row[b+5]) + n(row[b+6]),
-          home:   n(row[b+8]) + n(row[b+9]) + n(row[b+10]),
-          row:    n(row[b+12])+ n(row[b+13])+ n(row[b+14]),
-          life:   n(row[b+16])+ n(row[b+17])+ n(row[b+18]),
+          sunday: n(row[s0p])+n(row[s0e]) + n(row[s1p])+n(row[s1e]),
+          home:   n(row[s2p])+n(row[s2e]),
+          row:    n(row[s3p])+n(row[s3e]),
+          life:   n(row[s4p])+n(row[s4e]),
         };
         matched++;
       });
