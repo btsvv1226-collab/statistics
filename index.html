@@ -154,49 +154,49 @@ tbody td[title],thead th[title]{cursor:help}
 <div class="toast" id="toast"></div>
 
 <script>
-// bl=召會生活兒童數基數, br=兒童排基數, bs=主日基數, bh=家聚會受訪基數
+// bl=召會生活兒童數基數, br=兒童排基數, bh=家聚會受訪基數, bs=主日基數
 const BASE=[
-  {g:"A",dist:"一",    bl:15,br:8, bs:13,bh:4},
-  {g:"A",dist:"四",    bl:6, br:5, bs:2, bh:2},
-  {g:"A",dist:"三十三",bl:6, br:4, bs:2, bh:1},
-  {g:"A",dist:"二十七",bl:11,br:7, bs:9, bh:9},
-  {g:"B",dist:"二",    bl:15,br:11,bs:5, bh:0},
-  {g:"B",dist:"三",    bl:9, br:5, bs:5, bh:6},
-  {g:"B",dist:"十一",  bl:16,br:12,bs:6, bh:3},
-  {g:"B",dist:"三十九",bl:5, br:4, bs:2, bh:0},
-  {g:"C",dist:"十七",  bl:5, br:1, bs:4, bh:0},
-  {g:"C",dist:"二十三",bl:23,br:18,bs:18,bh:12},
-  {g:"C",dist:"三十四",bl:5, br:3, bs:2, bh:1},
-  {g:"C",dist:"二十四",bl:21,br:9, bs:16,bh:15},
-  {g:"C",dist:"四十",  bl:6, br:4, bs:4, bh:0},
-  {g:"D",dist:"七",    bl:19,br:11,bs:13,bh:7},
-  {g:"D",dist:"十五",  bl:8, br:3, bs:6, bh:5},
-  {g:"D",dist:"二十八",bl:13,br:4, bs:11,bh:5},
-  {g:"D",dist:"二十九",bl:8, br:6, bs:6, bh:5},
-  {g:"E",dist:"十八",  bl:12,br:5, bs:11,bh:1},
-  {g:"E",dist:"三十二",bl:5, br:0, bs:4, bh:0},
-  {g:"E",dist:"十九",  bl:0, br:0, bs:0, bh:0},
-  {g:"E",dist:"三十八",bl:1, br:1, bs:0, bh:0},
-  {g:"E",dist:"三十一",bl:10,br:6, bs:3, bh:4},
-  {g:"F",dist:"九",    bl:9, br:5, bs:6, bh:5},
-  {g:"F",dist:"二十六",bl:9, br:6, bs:8, bh:3},
-  {g:"F",dist:"三十七",bl:15,br:1, bs:12,bh:6},
-  {g:"F",dist:"十",    bl:4, br:2, bs:4, bh:4},
-  {g:"G",dist:"二十",  bl:23,br:16,bs:18,bh:11},
-  {g:"G",dist:"二十一",bl:22,br:12,bs:16,bh:20},
-  {g:"G",dist:"三十六",bl:18,br:13,bs:12,bh:13},
-  {g:"G",dist:"二十二",bl:8, br:4, bs:5, bh:2},
-  {g:"H",dist:"五",    bl:16,br:10,bs:13,bh:7},
-  {g:"H",dist:"十三",  bl:9, br:4, bs:7, bh:6},
-  {g:"H",dist:"三十五",bl:8, br:4, bs:8, bh:1},
-  {g:"I",dist:"八",    bl:4, br:0, bs:4, bh:1},
-  {g:"I",dist:"十二",  bl:5, br:2, bs:3, bh:1},
-  {g:"I",dist:"十六",  bl:5, br:1, bs:3, bh:2},
-  {g:"I",dist:"二十五",bl:3, br:0, bs:3, bh:1},
-  {g:"I",dist:"四十一",bl:13,br:3, bs:11,bh:10},
-  {g:"J",dist:"六",    bl:19,br:10,bs:14,bh:5},
-  {g:"J",dist:"十四",  bl:24,br:10,bs:12,bh:14},
-  {g:"J",dist:"三十",  bl:15,br:10,bs:6, bh:13},
+  {g:"A",dist:"一",bl:15,br:8,bh:4,bs:13},
+  {g:"A",dist:"四",bl:6,br:5,bh:2,bs:2},
+  {g:"A",dist:"三十三",bl:6,br:4,bh:1,bs:2},
+  {g:"A",dist:"二十七",bl:11,br:7,bh:9,bs:9},
+  {g:"B",dist:"二",bl:15,br:11,bh:0,bs:5},
+  {g:"B",dist:"三",bl:9,br:5,bh:6,bs:5},
+  {g:"B",dist:"十一",bl:16,br:12,bh:3,bs:6},
+  {g:"B",dist:"三十九",bl:5,br:4,bh:0,bs:2},
+  {g:"C",dist:"十七",bl:5,br:1,bh:0,bs:4},
+  {g:"C",dist:"二十三",bl:23,br:18,bh:12,bs:18},
+  {g:"C",dist:"三十四",bl:5,br:3,bh:1,bs:2},
+  {g:"C",dist:"二十四",bl:21,br:9,bh:15,bs:16},
+  {g:"C",dist:"四十",bl:6,br:4,bh:0,bs:4},
+  {g:"D",dist:"七",bl:19,br:11,bh:7,bs:13},
+  {g:"D",dist:"十五",bl:8,br:3,bh:5,bs:6},
+  {g:"D",dist:"二十八",bl:13,br:4,bh:5,bs:11},
+  {g:"D",dist:"二十九",bl:8,br:6,bh:5,bs:6},
+  {g:"E",dist:"十八",bl:12,br:5,bh:1,bs:11},
+  {g:"E",dist:"三十二",bl:5,br:0,bh:0,bs:4},
+  {g:"E",dist:"十九",bl:0,br:0,bh:0,bs:0},
+  {g:"E",dist:"三十八",bl:1,br:1,bh:0,bs:0},
+  {g:"E",dist:"三十一",bl:10,br:6,bh:4,bs:3},
+  {g:"F",dist:"九",bl:9,br:5,bh:5,bs:6},
+  {g:"F",dist:"二十六",bl:9,br:6,bh:3,bs:8},
+  {g:"F",dist:"三十七",bl:15,br:1,bh:6,bs:12},
+  {g:"F",dist:"十",bl:4,br:2,bh:4,bs:4},
+  {g:"G",dist:"二十",bl:23,br:16,bh:11,bs:18},
+  {g:"G",dist:"二十一",bl:22,br:12,bh:20,bs:16},
+  {g:"G",dist:"三十六",bl:18,br:13,bh:13,bs:12},
+  {g:"G",dist:"二十二",bl:8,br:4,bh:2,bs:5},
+  {g:"H",dist:"五",bl:16,br:10,bh:7,bs:13},
+  {g:"H",dist:"十三",bl:9,br:4,bh:6,bs:7},
+  {g:"H",dist:"三十五",bl:8,br:4,bh:1,bs:8},
+  {g:"I",dist:"八",bl:4,br:0,bh:1,bs:4},
+  {g:"I",dist:"十二",bl:5,br:2,bh:1,bs:3},
+  {g:"I",dist:"十六",bl:5,br:1,bh:2,bs:3},
+  {g:"I",dist:"二十五",bl:3,br:0,bh:1,bs:3},
+  {g:"I",dist:"四十一",bl:13,br:3,bh:10,bs:11},
+  {g:"J",dist:"六",bl:19,br:10,bh:5,bs:14},
+  {g:"J",dist:"十四",bl:24,br:10,bh:14,bs:12},
+  {g:"J",dist:"三十",bl:15,br:10,bh:13,bs:6},
 ];
 
 let WEEK_DATA=null;
@@ -230,67 +230,85 @@ function parseFile(file,cb){
         const ws=wb.Sheets[wb.SheetNames[0]];
         rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
       }
-      // ── 自動偵測各分組起始位置 ──────────────────────
-      // row0: 會所,大區,主日,兒童主日,家聚會受訪,兒童排,召會生活,...
-      // row1: 學齡前,國小[,國中],小計 重複
-      // 找 row1 中每個「學齡前」的位置，依序對應到分組
-      const groupStartIdx = []; // 各組「學齡前」在 row1 的位置（相對 row1 col0）
-      const groupHasChung = [];
-      if(rows.length>1){
+
+      // 偵測格式B（自製週報 .xlsx）
+      // row0=標題, row2=區排,2026Wxx..., row3=主日/家聚會..., row4=學齡前/國小..., row5起=大區資料
+      const isFormatB=rows.length>4&&
+        String(rows[2]?.[0]||"").trim()==="區排"&&
+        rows[4].some(v=>String(v).trim()==="學齡前");
+
+      // 格式A：從row1找學齡前欄位起始位置
+      const groupStartIdx=[];
+      if(!isFormatB&&rows.length>1){
         rows[1].forEach((v,i)=>{
-          if(String(v).trim()==="學齡前"){
-            groupStartIdx.push(i);
-            // 下一欄是國小，再下一欄若是國中則 hasChung=true
-            const next2 = String(rows[1][i+2]||"").trim();
-            groupHasChung.push(next2==="國中");
-          }
+          if(String(v).trim()==="學齡前") groupStartIdx.push(i);
         });
       }
-      // ─────────────────────────────────────────────────
+
+      // 格式B：從 row0 抓日期標籤
+      let autoLabel=null;
+      if(isFormatB&&rows[0]){
+        const title=String(rows[0][0]||"");
+        const m=title.match(/\((\d{4})-(\d{2})-(\d{2})\)/);
+        if(m){
+          const s=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));
+          const e2=new Date(s); e2.setDate(e2.getDate()+6);
+          autoLabel=`${s.getMonth()+1}/${s.getDate()}-${e2.getMonth()+1}/${e2.getDate()}`;
+        }
+        if(!autoLabel){
+          const wm=title.match(/W(\d+)/);
+          if(wm) autoLabel="W"+wm[1];
+        }
+      }
 
       const map={};let matched=0;
-
       rows.forEach(row=>{
-        if(!row||row.length<10)return;
+        if(!row||row.length<5) return;
         const c0=String(row[0]).trim().replace(/大區$/,"");
         const c1=String(row[1]||"").trim().replace(/大區$/,"");
-        let distName="", base_col=0;
-        if(BASE.find(b=>b.dist===c1)){distName=c1; base_col=1;} // 大區名在col1
-        else if(BASE.find(b=>b.dist===c0)){distName=c0; base_col=0;} // 大區名在col0
-        else return;
-        const base=BASE.find(b=>b.dist===distName);
-        if(!base)return;
-        // 自動偵測格式：依 row1 標題動態計算各欄位位置
-        // row0: 會所,大區,主日,兒童主日,家聚會受訪,兒童排,召會生活,...
-        // row1: 各組的 學齡前,國小[,國中],小計
-        // 策略：找 row0 各分組對應的 row1 欄位起始位置
-        const b=base_col;
-
-        // 從 headerStruct 取各組起始位置（已在外部計算）
-        const sIdx = groupStartIdx; // [主日, 兒童主日, 家聚會, 兒童排, 召會生活] 相對 row1 col0
-        const hasChung = groupHasChung; // 各組是否有國中欄
-
-        // 各組學齡前+國小相對 row1 col0 的位置（data row 需加 base_col+1 的偏移）
-        function grpCols(gIdx){ // 回傳 [學齡前絕對col, 國小絕對col]
-          const start = sIdx[gIdx] + b + 1;
-          return [start, start+1];
+        let distName="",base_col=0;
+        if(isFormatB){
+          if(BASE.find(b=>b.dist===c0)){distName=c0;base_col=0;}
+          else return;
+        } else {
+          if(BASE.find(b=>b.dist===c1)){distName=c1;base_col=1;}
+          else if(BASE.find(b=>b.dist===c0)){distName=c0;base_col=0;}
+          else return;
         }
-        const [s0p, s0e] = grpCols(0); // 主日
-        const [s1p, s1e] = grpCols(1); // 兒童主日
-        const [s2p, s2e] = grpCols(2); // 家聚會
-        const [s3p, s3e] = grpCols(3); // 兒童排
-        const [s4p, s4e] = grpCols(4); // 召會生活
+        const base=BASE.find(b=>b.dist===distName);
+        if(!base) return;
 
-        map[base.dist]={
-          sunday: n(row[s0p])+n(row[s0e]) + n(row[s1p])+n(row[s1e]),
-          home:   n(row[s2p])+n(row[s2e]),
-          row:    n(row[s3p])+n(row[s3e]),
-          life:   n(row[s4p])+n(row[s4e]),
-        };
+        if(isFormatB){
+          map[base.dist]={
+            sunday: n(row[3])+n(row[13]),
+            home:   n(row[6]),
+            row:    n(row[9]),
+            life:   n(row[12]),
+          };
+        } else {
+          const b=base_col;
+          function grpCols(gIdx){
+            const start=groupStartIdx[gIdx]+b+1;
+            return [start,start+1];
+          }
+          const [s0p,s0e]=grpCols(0);
+          const [s1p,s1e]=grpCols(1);
+          const [s2p,s2e]=grpCols(2);
+          const [s3p,s3e]=grpCols(3);
+          const [s4p,s4e]=grpCols(4);
+          map[base.dist]={
+            sunday: n(row[s0p])+n(row[s0e])+n(row[s1p])+n(row[s1e]),
+            home:   n(row[s2p])+n(row[s2e]),
+            row:    n(row[s3p])+n(row[s3e]),
+            life:   n(row[s4p])+n(row[s4e]),
+          };
+        }
         matched++;
       });
-      cb(matched>0?map:null,matched,file.name);
-    }catch(err){cb(null,0,file.name,err);}
+      cb(matched>0?map:null,matched,file.name,null,autoLabel);
+    }catch(err){
+      cb(null,0,file.name,err,null);
+    }
   };
   file.name.endsWith(".xls")?reader.readAsText(file,"utf-8"):reader.readAsBinaryString(file);
 }
@@ -407,10 +425,10 @@ function buildSummaryHTML(data){
 // ── 週報表 ────────────────────────────────────────
 function importWeekExcel(input){
   const file=input.files[0];if(!file)return;
-  parseFile(file,(map,cnt,fname,err)=>{
+  parseFile(file,(map,cnt,fname,err,autoLabel)=>{
     if(!map){showToast(err?"匯入失敗："+err.message:"⚠️ 找不到對應大區");return;}
     WEEK_DATA=map;
-    const label=fname.replace(/\.xls.*/,"").replace(/_/g," ").trim();
+    const label=autoLabel||fname.replace(/\.xls.*/,"").replace(/_/g," ").trim();
     if(!document.getElementById("week-title").value)
       document.getElementById("week-title").value=label;
     document.getElementById("week-status").textContent="✅ 已匯入 "+cnt+" 個大區";
@@ -450,10 +468,10 @@ function exportWeekExcel(){
 function importMonthExcel(input){
   const files=[...input.files];let done=0;
   files.forEach(file=>{
-    parseFile(file,(map,cnt,fname,err)=>{
+    parseFile(file,(map,cnt,fname,err,autoLabel)=>{
       done++;
       if(!map){showToast("⚠️ "+fname+" 找不到對應資料");return;}
-      const label=fname.replace(/\.xls.*/,"").replace(/_/g," ").trim();
+      const label=autoLabel||fname.replace(/\.xls.*/,"").replace(/_/g," ").trim();
       if(MONTH_WEEKS.find(w=>w.label===label)){
         showToast("⚠️ 「"+label+"」已存在，略過");
       } else {
@@ -651,6 +669,9 @@ async function exportPNG(contentId,titleId){
   link.click();
   showToast("✅ 圖片已下載！");
 }
+
+renderWeek();
+renderMonth();
 </script>
 </body>
 </html>
